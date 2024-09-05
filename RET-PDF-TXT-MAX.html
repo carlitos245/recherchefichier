@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recherche de mot dans des fichiers</title>
+</head>
+<body>
+  <h1>Recherche de mot dans des fichiers PDF TXT</h1>
+  
+  <!-- Input pour saisir le mot à rechercher -->
+  <label for="searchTerm">Mot à rechercher :</label>
+  <input type="text" id="searchTerm">
+  <br><br>
+  
+  <!-- Input pour sélectionner le dossier -->
+  <input type="file" id="directoryInput" webkitdirectory directory multiple>
+  <br><br>
+  
+  <!-- Bouton pour lancer la recherche -->
+  <button onclick="searchInFiles()">Rechercher</button>
+  
+  <!-- Zone pour afficher les résultats -->
+  <pre id="results"></pre>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+  <script>
+    // Fonction pour lire le fichier et rechercher le mot
+    async function searchInFiles() {
+      const searchTerm = document.getElementById('searchTerm').value;
+      const directoryInput = document.getElementById('directoryInput');
+      const files = directoryInput.files;
+      const resultsElement = document.getElementById('results');
+      
+      if (!searchTerm) {
+        alert('Veuillez entrer un mot à rechercher.');
+        return;
+      }
+      
+      if (!files.length) {
+        alert('Veuillez sélectionner un dossier.');
+        return;
+      }
+      
+      let results = `Fichiers contenant le mot '${searchTerm}':<br>`;
+      let found = false;
+      
+      const filePromises = Array.from(files).map(file => {
+        if (file.size > 10485760) { // Ignorer les fichiers de plus de 10 Mo
+          return Promise.resolve();
+        }
+        if (file.type === 'text/plain') {
+          return readFileAsText(file).then(content => {
+            if (content.includes(searchTerm)) {
+              results += `<br><a href="${URL.createObjectURL(file)}" target="_blank">Fichier TXT: ${file.name}</a><br>`;
+              found = true;
+            }
+          }).catch(error => console.error(`Erreur de lecture du fichier texte ${file.name}:`, error));
+        } else if (file.type === 'application/pdf') {
+          return readPdfAsText(file).then(content => {
+            if (content.includes(searchTerm)) {
+              results += `<br><a href="${URL.createObjectURL(file)}" target="_blank">Fichier PDF: ${file.name}</a><br>`;
+              found = true;
+            }
+          }).catch(error => console.error(`Erreur de lecture du fichier PDF ${file.name}:`, error));
+        }
+      });
+      
+      await Promise.all(filePromises);
+      
+      if (!found) {
+        results = `Aucun fichier contenant le mot '${searchTerm}' n'a été trouvé.`;
+      }
+      
+      resultsElement.innerHTML = results;
+    }
+    
+    // Fonction pour lire un fichier texte
+    function readFileAsText(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+    }
+    
+    // Fonction pour lire un fichier PDF
+    async function readPdfAsText(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = '';
+      for (let i = 0; i < pdf.numPages; i++) {
+        const page = await pdf.getPage(i + 1);
+        const content = await page.getTextContent();
+        text += content.items.map(item => item.str).join(' ') + '\n';
+      }
+      return text;
+    }
+  </script>
+</body>
+</html>
