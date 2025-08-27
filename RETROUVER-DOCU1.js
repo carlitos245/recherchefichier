@@ -36,7 +36,7 @@ async function searchInFiles() {
     if (file.type === 'text/plain') {
       try {
         const content = await readFileAsText(file);
-        if (content.includes(searchTerm)) {
+        if (content.toLowerCase().includes(searchTerm.toLowerCase())) {
           const fileURL = URL.createObjectURL(file);
           results += `<br><a href="${fileURL}" target="_blank">Fichier TXT : ${file.name}</a><br>`;
           found = true;
@@ -49,7 +49,7 @@ async function searchInFiles() {
     else if (file.type === 'application/pdf') {
       try {
         const content = await readPdfAsText(file);
-        if (content.includes(searchTerm)) {
+        if (content.toLowerCase().includes(searchTerm.toLowerCase())) {
           const fileURL = URL.createObjectURL(file);
           results += `<br><a href="${fileURL}" target="_blank">Fichier PDF : ${file.name}</a><br>`;
           found = true;
@@ -62,7 +62,7 @@ async function searchInFiles() {
     else if (file.type === 'text/html') {
       try {
         const content = await readFileAsText(file); // Utiliser la fonction de lecture des fichiers texte
-        if (content.includes(searchTerm)) {
+        if (content.toLowerCase().includes(searchTerm.toLowerCase())) {
           const fileURL = URL.createObjectURL(file);
           results += `<br><a href="${fileURL}" target="_blank">Fichier HTML : ${file.name}</a><br>`;
           found = true;
@@ -75,7 +75,7 @@ async function searchInFiles() {
     else if (file.name.endsWith('.docx')) {
       try {
         const content = await readDocxAsText(file);
-        if (content.includes(searchTerm)) {
+        if (content.toLowerCase().includes(searchTerm.toLowerCase())) {
           const fileURL = URL.createObjectURL(file);
           results += `<br><a href="${fileURL}" target="_blank">Fichier Word : ${file.name}</a><br>`;
           found = true;
@@ -88,7 +88,7 @@ async function searchInFiles() {
     else if (file.name.endsWith('.xlsx')) {
       try {
         const content = await readExcelAsText(file);
-        if (content.includes(searchTerm)) {
+        if (content.toLowerCase().includes(searchTerm.toLowerCase())) {
           const fileURL = URL.createObjectURL(file);
           results += `<br><a href="${fileURL}" target="_blank">Fichier Excel : ${file.name}</a><br>`;
           found = true;
